@@ -15,7 +15,7 @@ pipeline {
 
         stage('Update Jira Issue') {
             steps {
-                jiraComment site: 'cicdsoftwareconstruction.atlassian.net', idOrKey: 'SCRUM-1', comment: "Build #${env.BUILD_NUMBER} completed via Jenkins pipeline. Status: ${currentBuild.currentResult}"
+                jiraComment issueKey: 'SCRUM-1', body: "Build #${env.BUILD_NUMBER} completed via Jenkins pipeline. Status: ${currentBuild.currentResult}"
             }
         }
 
