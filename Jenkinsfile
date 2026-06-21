@@ -2,20 +2,20 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
-        IMAGE_NAME = "yourdockerhubusername/carshop-project"
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds-use-this-one')
+        IMAGE_NAME = "lawkzaniar/softwareconstruction"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/yourname/CarShopProject.git'
+                git branch: 'main', url: 'https://github.com/LawkZanyar/softwareconstruction.git'
             }
         }
 
         stage('Update Jira Issue') {
             steps {
-                jiraSendBuildInfo site: 'yourname-carshop.atlassian.net'
+                jiraSendBuildInfo site: 'cicdsoftwareconstruction.atlassian.net'
             }
         }
 
@@ -27,6 +27,20 @@ pipeline {
             }
         }
 
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t $IMAGE_NAME:latest .'
+            }
+        }
+
+        stage('Run Container for Testing') {
+            steps {
+                sh 'docker rm -f carshop-test || true'
+                sh 'docker run -d -p 8081:80 --name carshop-test $IMAGE_NAME:latest'
+                sh 'sleep 5'
+            }
+        }
+
         stage('Performance Test (JMeter)') {
             steps {
                 sh 'jmeter -n -t test-plan.jmx -l result.jtl'
@@ -34,13 +48,8 @@ pipeline {
             post {
                 always {
                     perfReport sourceDataFiles: 'result.jtl'
+                    sh 'docker rm -f carshop-test || true'
                 }
-            }
-        }
-
-        stage('Docker Build') {
-            steps {
-                sh 'docker build -t $IMAGE_NAME:latest .'
             }
         }
 
